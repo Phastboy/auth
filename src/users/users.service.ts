@@ -6,9 +6,23 @@ import { User, UserDocument } from '../schemas/user.schema';
 import { Model } from 'mongoose';
 import { log } from 'console';
 
+/**
+ * Users Service
+ *
+ * Handles  logic related to user operations.
+ *
+ * @export UsersService
+ */
 @Injectable()
 export class UsersService {
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+
+  /**
+   * Create a new user
+   *
+   * @param createUserDto - user details
+   * @returns The created user document.
+   */
   async create(createUserDto: CreateUserDto) {
     log({ 'user to be created': createUserDto });
     const createdUser = new this.userModel(createUserDto);
