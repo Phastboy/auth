@@ -1,26 +1,59 @@
 import { Injectable } from '@nestjs/common';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import * as crypto from 'crypto';
+import { UsersService } from '../users/users.service';
+import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { log } from 'console';
 
+/**
+ * AuthService handles logic related to authentication.
+ * It uses UsersService to interact with the database.
+ * */
 @Injectable()
 export class AuthService {
-  create(createAuthDto: CreateAuthDto) {
-    return 'This action adds a new auth';
+  constructor(private readonly usersService: UsersService) {}
+
+  /**
+   * Generate cryptographic salt
+   *
+   * @param length - length of the salt
+   * @returns - the generated salt
+   * */
+  generateSalt(length: number): string {
+    return crypto
+      .randomBytes(Math.ceil(length / 2))
+      .toString('hex')
+      .slice(0, length);
   }
 
-  findAll() {
-    return `This action returns all auth`;
+  /**
+   * Hash a password
+   *
+   * @param password - the password to hash
+   * @param salt - the salt to use
+   * @returns - the hashed password
+   * */
+  hashPassword(password: string, salt: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      crypto.pbkdf2(password, salt, 1000, 64, 'sha512', (err, derivedKey) => {
+        if (err) {
+          reject(err);
+        }
+        resolve(derivedKey.toString('hex'));
+      });
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
-  }
-
-  update(id: number, updateAuthDto: UpdateAuthDto) {
-    return `This action updates a #${id} auth`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
+  /**
+   * Create a new user
+   *
+   * @param createUserDto - the data provided by the user
+   * @returns - the created user
+   * */
+  async createUser(createUserDto: CreateUserDto) {
+    log({ 'user to be created': createUserDto });
+    const salt = this.generateSalt(32);
+    const password = await this.hashPassword(createUserDto.password, salt);
+    const userToBeCreated = { ...createUserDto, salt, password };
+    return this.usersService.create(userToBeCreated);
   }
 }
