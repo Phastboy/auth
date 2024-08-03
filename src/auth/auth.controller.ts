@@ -1,6 +1,7 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
+import { LoginDto } from './dto/login.dto';
 
 /**
  * AuthController handles HTTP requests related to authentication.
@@ -30,7 +31,7 @@ export class AuthController {
    * @returns Result of the login operation
    */
   @Post('login')
-  login(@Body() loginDto: CreateUserDto) {
+  login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
   }
 }
