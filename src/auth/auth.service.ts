@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import * as crypto from 'crypto';
 import { UsersService } from '../users/users.service';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { log } from 'console';
+import { LoginDto } from './dto/login.dto';
 
 /**
  * AuthService handles logic related to authentication.
@@ -50,10 +51,83 @@ export class AuthService {
    * @returns - the created user
    * */
   async createUser(createUserDto: CreateUserDto) {
-    log({ 'user to be created': createUserDto });
-    const salt = this.generateSalt(32);
-    const password = await this.hashPassword(createUserDto.password, salt);
-    const userToBeCreated = { ...createUserDto, salt, password };
-    return this.usersService.create(userToBeCreated);
+    try {
+      log({ 'user to be created': createUserDto });
+      const salt = this.generateSalt(32);
+      const password = await this.hashPassword(createUserDto.password, salt);
+      const userToBeCreated = { ...createUserDto, salt, password };
+      const createdUsed = await this.usersService.create(userToBeCreated);
+      log({ 'user created successfully': createdUsed });
+      return this.createUser;
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(error);
+    }
+  }
+
+  /**
+   * passwordIsCorrect checks if the password is correct
+   * 
+   * @param password - the password to verify
+   * @param salt - the salt to use
+   * @param hash - the hash to compare
+   * @returns - true if the password is correct, false otherwise
+   * */
+  async passwordIsCorrect(password: string, salt: string, hash: string): Promise<boolean> {
+    const hashedPassword = await this.hashPassword(password, salt);
+    return hashedPassword === hash;
+  }
+
+  /**
+   * Validate a user
+   *
+   * @param username - the username of the user
+   * @param password - the password of the user
+   * @returns - the user document
+   * */
+  async validateUser(email: string, password: string) {
+    try {
+      log({'searching for user': email});
+      const user = await this.usersService.findByEmail(email);
+      if (!user) {
+        log({'user not found': email});
+        throw new NotFoundException('User not found');
+      }
+
+      log({'user found': user});
+      const pass = await this.hashPassword(password, user.salt);
+      if (this.passwordIsCorrect(pass, user.salt, user.password)) {
+        const {
+          password,
+          salt,
+          ...result
+        } = user.toObject();
+        log({ 'user logged in': result });
+        return result;
+      }
+      throw new UnauthorizedException('Invalid password');
+    } catch (error) {
+      console.error(error);
+      // throw error as exception
+      throw new InternalServerErrorException(error);
+    }
+  }
+
+  /**
+   * login a user
+   * 
+   * @param email - the email of the user
+   * @param password - the password of the user
+   * @returns - the user document
+   * */
+  async login(loginDto: LoginDto) {
+    try {
+      log({'logging in user': loginDto.email});
+      return this.validateUser(loginDto.email, loginDto.password);
+    } catch (error) {
+      console.error(error);
+      // throw error as exception
+      throw new InternalServerErrorException(error);
+    }
   }
 }
