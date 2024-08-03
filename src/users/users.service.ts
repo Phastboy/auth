@@ -39,6 +39,16 @@ export class UsersService {
   }
 
   /**
+   * Find a user by EMAIL
+   *
+   * @param email - The email of the user
+   * @returns The user document
+   * */
+  async findByEmail(email: string) {
+    return this.userModel.findOne({ email }).exec();
+  }
+
+  /**
    * Find a user by USERNAME
    *
    * @param username - The username of the user
@@ -50,7 +60,7 @@ export class UsersService {
 
   /**
    * Delete a user by USERNAME
-   * 
+   *
    * @param username - The username of the user
    * @returns The deleted user document
    */
