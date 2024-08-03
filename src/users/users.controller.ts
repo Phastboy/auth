@@ -1,8 +1,8 @@
 import { Controller, Delete, Get, Param, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { JwtAuthGuard } from 'src/auth/gaurds/jwt-auth/jwt-auth.guard';
-import { RoleGuard } from 'src/auth/gaurds/role/role.guard';
-import { Role } from 'src/decorators/role/role.decorator';
+import { JwtAuthGuard } from '../auth/gaurds/jwt-auth/jwt-auth.guard';
+import { RoleGuard } from '../auth/gaurds/role/role.guard';
+import { Role } from '../decorators/role/role.decorator';
 
 /**
  * UsersController handles HTTP requests related to user operations.
