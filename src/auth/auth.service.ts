@@ -8,6 +8,7 @@ import * as crypto from 'crypto';
 import { UsersService } from '../users/users.service';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { log } from 'console';
+import { JwtService } from '@nestjs/jwt';
 
 /**
  * AuthService handles logic related to authentication.
@@ -15,7 +16,10 @@ import { log } from 'console';
  * */
 @Injectable()
 export class AuthService {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly jwtService: JwtService,
+  ) {}
 
   /**
    * Generate cryptographic salt
@@ -109,6 +113,30 @@ export class AuthService {
         return result;
       }
       throw new UnauthorizedException('Invalid password');
+    } catch (error) {
+      console.error(error);
+      // throw error as exception
+      throw new InternalServerErrorException(error);
+    }
+  }
+
+  /**
+   * login a user
+   *
+   * @param email - the email of the user
+   * @param password - the password of the user
+   * @returns - the user document
+   * */
+  async login(user: any) {
+    try {
+      const payload = {
+        username: user.username,
+        email: user.email,
+        sub: user._id,
+      };
+      return {
+        access_token: this.jwtService.sign(payload),
+      };
     } catch (error) {
       console.error(error);
       // throw error as exception
