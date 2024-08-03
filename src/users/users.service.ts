@@ -3,7 +3,6 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from '../schemas/user.schema';
 import { Model } from 'mongoose';
-import { log } from 'console';
 
 /**
  * UsersService handles  logic related to user operations.

@@ -8,8 +8,8 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
-import { LocalAuthGuard } from './gaurds/local-auth/local-auth.gaurd';
-import { JwtAuthGuard } from './gaurds/jwt-auth/jwt-auth.guard';
+import { LocalAuthGuard } from './guards/local-auth/local-auth.guard';
+import { JwtAuthGuard } from './guards/jwt-auth/jwt-auth.guard';
 
 /**
  * AuthController handles HTTP requests related to authentication.
