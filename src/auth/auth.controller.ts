@@ -1,6 +1,15 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Request,
+  Get,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
+import { LocalAuthGuard } from './gaurds/local-auth/local-auth.gaurd';
+import { JwtAuthGuard } from './gaurds/jwt-auth/jwt-auth.guard';
 
 /**
  * AuthController handles HTTP requests related to authentication.
@@ -26,11 +35,17 @@ export class AuthController {
    * Handles POST /auth/login endpoint.
    * It logs in a user using the provided data.
    *
-   * @param loginDto - Data provided by the user
    * @returns Result of the login operation
    */
+  @UseGuards(LocalAuthGuard)
   @Post('login')
-  login(@Body() loginDto: CreateUserDto) {
-    return this.authService.login(loginDto);
+  login(@Request() req: any) {
+    return this.authService.login(req.user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('profile')
+  getProfile(@Request() req: any) {
+    return req.user;
   }
 }
