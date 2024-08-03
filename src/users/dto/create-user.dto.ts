@@ -1,5 +1,5 @@
 import { IsEmail, IsEnum, IsNotEmpty, IsString } from 'class-validator';
-import { Role } from '../../constants';
+import { Role } from '../../types';
 
 /**
  * Data transfer object for creating a user
