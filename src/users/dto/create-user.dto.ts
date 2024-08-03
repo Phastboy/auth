@@ -1,22 +1,23 @@
-import { IsEmail, IsNotEmpty, IsString } from "class-validator";
+import { IsEmail, IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import { Role } from '../../constants';
 
 /**
  * Data transfer object for creating a user
  * @export CreateUserDto
  */
 export class CreateUserDto {
-    @IsNotEmpty()
-    @IsString()
-    username: string;
+  @IsNotEmpty()
+  @IsString()
+  username: string;
 
-    @IsNotEmpty()
-    @IsEmail()
-    email: string;
+  @IsNotEmpty()
+  @IsEmail()
+  email: string;
 
-    @IsNotEmpty()
-    @IsString()
-    password: string;
+  @IsNotEmpty()
+  @IsString()
+  password: string;
 
-    @IsString()
-    role?: string;
+  @IsEnum(Role)
+  role?: string;
 }
