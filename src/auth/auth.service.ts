@@ -8,7 +8,6 @@ import * as crypto from 'crypto';
 import { UsersService } from '../users/users.service';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { log } from 'console';
-import { LoginDto } from './dto/login.dto';
 
 /**
  * AuthService handles logic related to authentication.
@@ -110,24 +109,6 @@ export class AuthService {
         return result;
       }
       throw new UnauthorizedException('Invalid password');
-    } catch (error) {
-      console.error(error);
-      // throw error as exception
-      throw new InternalServerErrorException(error);
-    }
-  }
-
-  /**
-   * login a user
-   *
-   * @param email - the email of the user
-   * @param password - the password of the user
-   * @returns - the user document
-   * */
-  async login(loginDto: LoginDto) {
-    try {
-      log({ 'logging in user': loginDto.email });
-      return this.validateUser(loginDto.email, loginDto.password);
     } catch (error) {
       console.error(error);
       // throw error as exception

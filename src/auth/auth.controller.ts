@@ -1,7 +1,7 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
-import { LoginDto } from './dto/login.dto';
+import { LocalAuthGuard } from './guards/local-auth/local-auth.guard';
 
 /**
  * AuthController handles HTTP requests related to authentication.
@@ -27,11 +27,11 @@ export class AuthController {
    * Handles POST /auth/login endpoint.
    * It logs in a user using the provided data.
    *
-   * @param loginDto - Data provided by the user
    * @returns Result of the login operation
    */
+  @UseGuards(LocalAuthGuard)
   @Post('login')
-  login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto);
+  login(@Request() req: any) {
+    return req.user;
   }
 }
