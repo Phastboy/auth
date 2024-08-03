@@ -133,6 +133,7 @@ export class AuthService {
         username: user.username,
         email: user.email,
         sub: user._id,
+        role: user.role,
       };
       return {
         access_token: this.jwtService.sign(payload),
