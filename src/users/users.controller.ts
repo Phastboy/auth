@@ -1,5 +1,8 @@
-import { Controller, Delete, Get, Param } from '@nestjs/common';
+import { Controller, Delete, Get, Param, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
+import { JwtAuthGuard } from 'src/auth/gaurds/jwt-auth/jwt-auth.guard';
+import { RoleGuard } from 'src/auth/gaurds/role/role.guard';
+import { Role } from 'src/decorators/role/role.decorator';
 
 /**
  * UsersController handles HTTP requests related to user operations.
@@ -17,6 +20,8 @@ export class UsersController {
    *
    * @returns List of all users
    * */
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Role('admin')
   @Get()
   findAll() {
     return this.usersService.findAll();
@@ -28,6 +33,8 @@ export class UsersController {
    * @param username - The username of the user
    * @returns The user document
    */
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Role('admin')
   @Get(':username')
   findOne(@Param('username') username: string) {
     return this.usersService.findOne(username);
@@ -39,6 +46,8 @@ export class UsersController {
    * @param username - The username of the user
    * @returns The deleted user document
    */
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Role('admin')
   @Delete(':username')
   delete(@Param('username') username: string) {
     return this.usersService.delete(username);
