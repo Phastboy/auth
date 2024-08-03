@@ -11,6 +11,9 @@ import { log } from 'console';
  */
 @Injectable()
 export class UsersService {
+  /**
+   * Constructor is used to inject the required services.
+   */
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
   /**
@@ -24,5 +27,34 @@ export class UsersService {
     const savedUser = await createdUser.save();
     log({ 'user created': savedUser });
     return savedUser;
+  }
+
+  /**
+   * Find all users
+   *
+   * @returns List of all users
+   */
+  async findAll() {
+    return this.userModel.find().exec();
+  }
+
+  /**
+   * Find a user by USERNAME
+   *
+   * @param username - The username of the user
+   * @returns The user document
+   */
+  async findOne(username: string) {
+    return this.userModel.findOne({ username }).exec();
+  }
+
+  /**
+   * Delete a user by USERNAME
+   * 
+   * @param username - The username of the user
+   * @returns The deleted user document
+   */
+  async delete(username: string) {
+    return this.userModel.findOneAndDelete({ username }).exec();
   }
 }
