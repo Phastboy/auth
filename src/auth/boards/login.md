@@ -44,3 +44,41 @@ sequenceDiagram
     Server->>Server: Generate token
     Server->>Client: Return token
 ```
+
+## Implementation details
+
+1. **DTO**: Create a DTO to represent the user's credentials.
+
+2. **Service**: Create a service to handle the login process.
+
+- **Validate User:**
+
+  - Ensure that the user has provided the required credentials.
+  - Check if the user exists in the database.
+  - If the user exists, verify the user's credentials.
+
+- **End goal:**
+  - If the credentials are valid, generate a token for the user.
+  - Else, handle exceptions accordingly.
+
+3. **Controller**: Create a controller to handle the login request.
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Controller
+    participant Service
+    participant Database
+
+    Client->>+Controller: POST /auth/login
+    Controller->>+Service: Validate user's credentials
+    Service->>+Database: Check if user exists
+    Database->>+Service: Return user details
+    Service->>+Service: compare user's details
+    Service->>+Controller: Generate token
+    Controller-->>-Client: Return token
+```
+
+```
+
+```
