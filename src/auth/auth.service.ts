@@ -51,13 +51,18 @@ export class AuthService {
    * @returns - the created user
    * */
   async createUser(createUserDto: CreateUserDto) {
-    log({ 'user to be created': createUserDto });
-    const salt = this.generateSalt(32);
-    const password = await this.hashPassword(createUserDto.password, salt);
-    const userToBeCreated = { ...createUserDto, salt, password };
-    const createdUsed = await this.usersService.create(userToBeCreated);
-    log({ 'user created successfully': createdUsed });
-    return this.createUser;
+    try {
+      log({ 'user to be created': createUserDto });
+      const salt = this.generateSalt(32);
+      const password = await this.hashPassword(createUserDto.password, salt);
+      const userToBeCreated = { ...createUserDto, salt, password };
+      const createdUsed = await this.usersService.create(userToBeCreated);
+      log({ 'user created successfully': createdUsed });
+      return this.createUser;
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(error);
+    }
   }
 
   /**
