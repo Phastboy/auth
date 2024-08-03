@@ -21,4 +21,16 @@ export class AuthController {
   create(@Body() createAuthDto: CreateUserDto) {
     return this.authService.createUser(createAuthDto);
   }
+
+  /**
+   * Handles POST /auth/login endpoint.
+   * It logs in a user using the provided data.
+   *
+   * @param loginDto - Data provided by the user
+   * @returns Result of the login operation
+   */
+  @Post('login')
+  login(@Body() loginDto: CreateUserDto) {
+    return this.authService.login(loginDto);
+  }
 }

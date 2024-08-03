@@ -25,7 +25,6 @@ export class UsersService {
   async create(createUserDto: CreateUserDto) {
     const createdUser = new this.userModel(createUserDto);
     const savedUser = await createdUser.save();
-    log({ 'user created': savedUser });
     return savedUser;
   }
 
