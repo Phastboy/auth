@@ -4,6 +4,7 @@ import {
   Body,
   UseGuards,
   Request,
+  Res,
   Get,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -13,37 +14,32 @@ import { LocalAuthGuard } from './guards/local-auth/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth/jwt-auth.guard';
 import { Tokens } from 'src/types';
 import { RefreshTokenGuard } from './guards/jwt-refresh-auth/jwt-refresh-auth.guard';
+import { Response } from 'express';
 
-/**
- * AuthController handles HTTP requests related to authentication.
- * It uses AuthService to perform the necessary operations.
- */
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  /**
-   * Handles POST /auth/register endpoint.
-   * It creates a new user using the provided data.
-   *
-   * @param createAuthDto - Data provided by the user
-   * @returns Result of the create user operation
-   */
   @Post('register')
   create(@Body() createAuthDto: CreateUserDto) {
     return this.authService.createUser(createAuthDto);
   }
 
-  /**
-   * Handles POST /auth/login endpoint.
-   * It logs in a user using the provided data.
-   *
-   * @returns Result of the login operation
-   */
   @UseGuards(LocalAuthGuard)
   @Post('login')
-  login(@Request() req: any) {
-    return this.authService.login(req.user);
+  async login(@Request() req: any, @Res() res: Response) {
+    const tokens = await this.authService.login(req.user);
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict' as const,
+    };
+
+    res.cookie('accessToken', tokens.accessToken, cookieOptions);
+    res.cookie('refreshToken', tokens.refreshToken, cookieOptions);
+
+    return res.send({ message: 'Login successful' });
   }
 
   @UseGuards(JwtAuthGuard)
@@ -55,7 +51,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard, RefreshTokenGuard)
   @Post('refresh')
   async refresh(@Request() request: Request): Promise<Tokens> {
-    console.log({ request }); // Debugging line
+    console.log({ request });
     const refreshToken = request.headers['refresh-token'] as string;
     if (!refreshToken || typeof refreshToken !== 'string') {
       throw new UnauthorizedException('No or invalid refresh token provided');
