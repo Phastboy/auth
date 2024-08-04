@@ -1,37 +1,25 @@
 # Login
 
-To authenticate a user, you need to send a POST request to the `/auth/login` endpoint with the user's credentials. The endpoint will return a token that you can use to authenticate the user in subsequent requests.
+To authenticate a user, follow these steps: validate the user's credentials, generate a token, and return the token for subsequent authentication.
 
 ## Steps to Authenticate a User
 
-1. **Validate User's Credentials**: Ensure that the user has provided the required credentials.
+1. **Validate User's Credentials:**
+    - Ensure that the user has provided the required credentials (e.g., email and password).
+    - Retrieve the stored user details from the database using the provided email.
 
-   - **Example**:
+2. **Verify User's Credentials:**
+    - Use the stored salt to hash the provided password.
+    - Compare the hashed password with the stored hashed password to verify the credentials.
 
-     ```json
-     {
-       "email": "user@example.com",
-       "password": "password"
-     }
-     ```
+3. **Generate Token:**
+    - If the user's credentials are valid, generate a token (e.g., JWT) for the user.
+    - This token will be used to authenticate the user in subsequent requests.
 
-2. **Send a POST Request**: Send a POST request to the designated endpoint with the user's credentials.
+## Implementation Details
 
-   - **Example**:
-
-     ```http
-     POST /auth/login
-     Content-Type: application/json
-
-     {
-       "email": "user@example.com",
-       "password": "password"
-     }
-     ```
-
-3. **Verify User's Credentials**: Previously, while registering the user, you would have stored the user's credentials in the database. Verify the user's credentials against the stored credentials.
-
-4. **Generate a Token**: If the user's credentials are valid, generate a token for the user.
+- Use a secure token generation mechanism to create the authentication token.
+- Store the token securely and ensure it has an expiration time to enhance security.
 
 ## Login Process
 
@@ -39,46 +27,12 @@ To authenticate a user, you need to send a POST request to the `/auth/login` end
 sequenceDiagram
     participant Client
     participant Server
-    Client->>Server: POST /auth/login
-    Server->>Server: Verify user's credentials
-    Server->>Server: Generate token
-    Server->>Client: Return token
-```
-
-## Implementation details
-
-1. **DTO**: Create a DTO to represent the user's credentials.
-
-2. **Service**: Create a service to handle the login process.
-
-- **Validate User:**
-
-  - Ensure that the user has provided the required credentials.
-  - Check if the user exists in the database.
-  - If the user exists, verify the user's credentials.
-
-- **End goal:**
-  - If the credentials are valid, generate a token for the user.
-  - Else, handle exceptions accordingly.
-
-3. **Controller**: Create a controller to handle the login request.
-
-```mermaid
-sequenceDiagram
-    participant Client
-    participant Controller
-    participant Service
     participant Database
 
-    Client->>+Controller: POST /auth/login
-    Controller->>+Service: Validate user's credentials
-    Service->>+Database: Check if user exists
-    Database->>+Service: Return user details
-    Service->>+Service: compare user's details
-    Service->>+Controller: Generate token
-    Controller-->>-Client: Return token
-```
-
-```
-
+    Client->>+Server: POST /auth/login
+    Server->>+Database: Retrieve user details
+    Database-->>+Server: Return user details
+    Server->>+Server: Verify user's credentials
+    Server->>+Server: Generate token
+    Server-->>-Client: Return token
 ```

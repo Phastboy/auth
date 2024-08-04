@@ -4,65 +4,41 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import * as crypto from 'crypto';
 import { UsersService } from '../users/users.service';
-import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { CreateUserDto } from '../users/dto/create-user.dto';
 import { log } from 'console';
-import { JwtService } from '@nestjs/jwt';
+import { User } from '../schemas/user.schema';
+import { Payload, Tokens } from '../types';
+import { PasswordService } from '../password/password.service';
+import { TokenService } from '../token/token.service';
+import { variables } from '../../constants';
 
 /**
  * AuthService handles logic related to authentication.
  * It uses UsersService to interact with the database.
- * */
+ */
 @Injectable()
 export class AuthService {
   constructor(
     private readonly usersService: UsersService,
-    private readonly jwtService: JwtService,
+    private readonly passwordService: PasswordService,
+    private readonly tokenService: TokenService,
   ) {}
-
-  /**
-   * Generate cryptographic salt
-   *
-   * @param length - length of the salt
-   * @returns - the generated salt
-   * */
-  generateSalt(length: number): string {
-    return crypto
-      .randomBytes(Math.ceil(length / 2))
-      .toString('hex')
-      .slice(0, length);
-  }
-
-  /**
-   * Hash a password
-   *
-   * @param password - the password to hash
-   * @param salt - the salt to use
-   * @returns - the hashed password
-   * */
-  hashPassword(password: string, salt: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      crypto.pbkdf2(password, salt, 1000, 64, 'sha512', (err, derivedKey) => {
-        if (err) {
-          reject(err);
-        }
-        resolve(derivedKey.toString('hex'));
-      });
-    });
-  }
 
   /**
    * Create a new user
    *
    * @param createUserDto - the data provided by the user
    * @returns - the created user
-   * */
+   */
   async createUser(createUserDto: CreateUserDto) {
     try {
       log({ 'user to be created': createUserDto });
-      const salt = this.generateSalt(32);
-      const password = await this.hashPassword(createUserDto.password, salt);
+      const salt = this.passwordService.generateSalt(32);
+      const password = await this.passwordService.hashPassword(
+        createUserDto.password,
+        salt,
+      );
       const userToBeCreated = { ...createUserDto, salt, password };
       const createdUser = await this.usersService.create(userToBeCreated);
       log({ 'user created successfully': createdUser });
@@ -74,29 +50,12 @@ export class AuthService {
   }
 
   /**
-   * passwordIsCorrect checks if the password is correct
-   *
-   * @param password - the password to verify
-   * @param salt - the salt to use
-   * @param hash - the hash to compare
-   * @returns - true if the password is correct, false otherwise
-   * */
-  async passwordIsCorrect(
-    password: string,
-    salt: string,
-    hash: string,
-  ): Promise<boolean> {
-    const hashedPassword = await this.hashPassword(password, salt);
-    return hashedPassword === hash;
-  }
-
-  /**
    * Validate a user
    *
    * @param username - the username of the user
    * @param password - the password of the user
    * @returns - the user document
-   * */
+   */
   async validateUser(email: string, password: string) {
     try {
       log({ 'searching for user': email });
@@ -107,10 +66,16 @@ export class AuthService {
       }
 
       log({ 'user found': user });
-      if (await this.passwordIsCorrect(password, user.salt, user.password)) {
+      if (
+        await this.passwordService.passwordIsCorrect(
+          password,
+          user.salt,
+          user.password,
+        )
+      ) {
         const { password, salt, ...result } = user.toObject();
         log({ 'user logged in': result });
-        return result;
+        return result as Payload;
       }
       throw new UnauthorizedException('Invalid password');
     } catch (error) {
@@ -125,23 +90,44 @@ export class AuthService {
    *
    * @param email - the email of the user
    * @param password - the password of the user
-   * @returns - the user document
-   * */
-  async login(user: any) {
+   * @returns - the access token and refresh token
+   */
+  async login(user: User): Promise<Tokens> {
     try {
-      const payload = {
-        username: user.username,
-        email: user.email,
-        sub: user._id,
-        role: user.role,
-      };
-      return {
-        access_token: this.jwtService.sign(payload),
-      };
+      const tokens = await this.tokenService.generateTokens(user);
+      return tokens;
     } catch (error) {
       console.error(error);
       // throw error as exception
       throw new InternalServerErrorException(error);
+    }
+  }
+
+  /**
+   * refresh a user
+   * @param refreshToken - the refresh token
+   * @returns - the access token and refresh token
+   */
+  async refresh(refreshToken: string): Promise<Tokens> {
+    try {
+      console.log('Refreshing with token:', refreshToken);
+      const payload: Payload = await this.tokenService.verify(
+        refreshToken,
+        variables.jwtRefreshSecret,
+      );
+      console.log('Payload:', payload);
+      if (!payload) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+      const user = await this.usersService.findOne(payload._id);
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+      const tokens = await this.tokenService.generateTokens(user, refreshToken);
+      return tokens;
+    } catch (error) {
+      console.error('Error refreshing tokens:', error);
+      throw new InternalServerErrorException('Token refresh error');
     }
   }
 }
