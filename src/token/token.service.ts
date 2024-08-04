@@ -40,7 +40,7 @@ export class TokenService {
         ? previousRefreshToken
         : this.jwtService.sign(payload as Payload, {
             secret: variables.jwtRefreshSecret,
-            expiresIn: '7d',
+            expiresIn: variables.jwtRefreshTokenExpiresIn,
           });
       return { accessToken, refreshToken };
     } catch (error) {
