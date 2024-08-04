@@ -11,7 +11,6 @@ import { AuthService } from './auth.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { LocalAuthGuard } from './guards/local-auth/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth/jwt-auth.guard';
-import { throttle } from 'rxjs';
 import { Tokens } from 'src/types';
 import { RefreshTokenGuard } from './guards/jwt-refresh-auth/jwt-refresh-auth.guard';
 
