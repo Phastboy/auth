@@ -5,11 +5,15 @@ import {
   UseGuards,
   Request,
   Get,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { LocalAuthGuard } from './guards/local-auth/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth/jwt-auth.guard';
+import { throttle } from 'rxjs';
+import { Tokens } from 'src/types';
+import { RefreshTokenGuard } from './guards/jwt-refresh-auth/jwt-refresh-auth.guard';
 
 /**
  * AuthController handles HTTP requests related to authentication.
@@ -47,5 +51,16 @@ export class AuthController {
   @Get('profile')
   getProfile(@Request() req: any) {
     return req.user;
+  }
+
+  @UseGuards(JwtAuthGuard, RefreshTokenGuard)
+  @Post('refresh')
+  async refresh(@Request() request: Request): Promise<Tokens> {
+    console.log({ request }); // Debugging line
+    const refreshToken = request.headers['refresh-token'] as string;
+    if (!refreshToken || typeof refreshToken !== 'string') {
+      throw new UnauthorizedException('No or invalid refresh token provided');
+    }
+    return this.authService.refresh(refreshToken);
   }
 }

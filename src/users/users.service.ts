@@ -52,8 +52,18 @@ export class UsersService {
    * @param username - The username of the user
    * @returns The user document
    */
-  async findOne(username: string) {
+  async findByUsername(username: string) {
     return this.userModel.findOne({ username }).exec();
+  }
+
+  /**
+   * Find a user
+   *
+   * @param id - The id of the user
+   * @returns The user document
+   * */
+  async findOne(id: any) {
+    return this.userModel.findById(id).exec();
   }
 
   /**
