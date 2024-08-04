@@ -6,10 +6,29 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
 import { PasswordModule } from './password/password.module';
 import { TokenModule } from './token/token.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
-  imports: [UsersModule, MongooseModule.forRoot('mongodb://127.0.0.1:27017/auth'), AuthModule, PasswordModule, TokenModule],
+  imports: [
+    ThrottlerModule.forRoot([
+      {
+        ttl: 1000,
+        limit: 2,
+      },
+    ]),
+    MongooseModule.forRoot('mongodb://127.0.0.1:27017/auth'),
+    AuthModule,
+    PasswordModule,
+    TokenModule,
+  ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}

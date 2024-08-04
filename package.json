@@ -27,6 +27,7 @@
     "@nestjs/mongoose": "^10.0.10",
     "@nestjs/passport": "^10.0.3",
     "@nestjs/platform-express": "^10.0.0",
+    "@nestjs/throttler": "^6.0.0",
     "class-validator": "^0.14.1",
     "mongodb": "^6.8.0",
     "mongoose": "^8.5.2",
