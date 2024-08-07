@@ -27,19 +27,8 @@ export class AuthController {
 
   @UseGuards(LocalAuthGuard)
   @Post('login')
-  async login(@Request() req: any, @Res() res: Response) {
-    const tokens = await this.authService.login(req.user);
-
-    const cookieOptions = {
-      httpOnly: true,
-      secure: false,//process.env.NODE_ENV === 'production',
-      sameSite: 'strict' as const,
-    };
-
-    res.cookie('accessToken', tokens.accessToken, cookieOptions);
-    res.cookie('refreshToken', tokens.refreshToken, cookieOptions);
-
-    return res.send({ message: 'Login successful' });
+  async login(@Request() req: any) {
+    return await this.authService.login(req.user);
   }
 
   @UseGuards(JwtAuthGuard)

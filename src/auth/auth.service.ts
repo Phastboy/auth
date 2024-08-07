@@ -65,7 +65,7 @@ export class AuthService {
       return result as Payload;
     } catch (error) {
       this.logger.error(`Error validating user: ${error.message}`, error.stack);
-      throw new InternalServerErrorException('Could not validate user');
+      throw new InternalServerErrorException(error.message);
     }
   }
 
@@ -73,6 +73,7 @@ export class AuthService {
     try {
       this.logger.log(`Logging in user: ${user.email}`);
       const tokens = await this.tokenService.generateTokens(user);
+      this.logger.log(`User logged in: ${user.email}`);
       return tokens;
     } catch (error) {
       this.logger.error(`Error logging in user: ${error.message}`, error.stack);
