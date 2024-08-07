@@ -4,74 +4,40 @@ import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from '../schemas/user.schema';
 import { Model } from 'mongoose';
 
-/**
- * UsersService handles  logic related to user operations.
- * It uses the User model to interact with the database.
- */
 @Injectable()
 export class UsersService {
-  /**
-   * Constructor is used to inject the required services.
-   */
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
-  /**
-   * Create a new user
-   *
-   * @param createUserDto - user details
-   * @returns The created user document.
-   */
   async create(createUserDto: CreateUserDto) {
-    const createdUser = new this.userModel(createUserDto);
-    const savedUser = await createdUser.save();
-    return savedUser;
+    try {
+      const createdUser = new this.userModel(createUserDto);
+      const savedUser = await createdUser.save();
+      return savedUser;
+    } catch (error: any) {
+      if (error.code === 11000) {
+        throw new Error('Username or Email already exists');
+      }
+
+      throw new Error(error);
+    }
   }
 
-  /**
-   * Find all users
-   *
-   * @returns List of all users
-   */
   async findAll() {
     return this.userModel.find().exec();
   }
 
-  /**
-   * Find a user by EMAIL
-   *
-   * @param email - The email of the user
-   * @returns The user document
-   * */
   async findByEmail(email: string) {
     return this.userModel.findOne({ email }).exec();
   }
 
-  /**
-   * Find a user by USERNAME
-   *
-   * @param username - The username of the user
-   * @returns The user document
-   */
   async findByUsername(username: string) {
     return this.userModel.findOne({ username }).exec();
   }
 
-  /**
-   * Find a user
-   *
-   * @param id - The id of the user
-   * @returns The user document
-   * */
   async findOne(id: any) {
     return this.userModel.findById(id).exec();
   }
 
-  /**
-   * Delete a user by USERNAME
-   *
-   * @param username - The username of the user
-   * @returns The deleted user document
-   */
   async delete(username: string) {
     return this.userModel.findOneAndDelete({ username }).exec();
   }
