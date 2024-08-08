@@ -34,7 +34,8 @@ export class AuthService {
       const userToBeCreated = { ...createUserDto, salt, password };
       const createdUser = await this.usersService.create(userToBeCreated);
       this.logger.log(`User created successfully: ${createdUser.email}`);
-      return createdUser;
+      const tokens = await this.tokenService.generateTokens(createdUser);
+      return tokens;
     } catch (error) {
       this.logger.error(`Error creating user: ${error.message}`, error.stack);
       throw new InternalServerErrorException('Could not create user');
