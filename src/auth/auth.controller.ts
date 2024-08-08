@@ -4,7 +4,6 @@ import {
   Body,
   UseGuards,
   Request,
-  Res,
   Get,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -14,15 +13,15 @@ import { LocalAuthGuard } from './guards/local-auth/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth/jwt-auth.guard';
 import { Tokens } from 'src/types';
 import { RefreshTokenGuard } from './guards/jwt-refresh-auth/jwt-refresh-auth.guard';
-import { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  create(@Body() createAuthDto: CreateUserDto) {
-    return this.authService.createUser(createAuthDto);
+  async create(@Body() createAuthDto: CreateUserDto) {
+    const tokens = await this.authService.createUser(createAuthDto);
+    return tokens;
   }
 
   @UseGuards(LocalAuthGuard)
