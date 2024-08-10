@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Body,
+  Res,
   UseGuards,
   Request,
   Get,
@@ -13,21 +14,39 @@ import { LocalAuthGuard } from './guards/local-auth/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth/jwt-auth.guard';
 import { Tokens } from 'src/types';
 import { RefreshTokenGuard } from './guards/jwt-refresh-auth/jwt-refresh-auth.guard';
+import { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  private readonly isProduction = process.env.NODE_ENV === 'production';
+  private readonly cookieOptions: any = {
+    httpOnly: true,
+    secure: this.isProduction,
+    sameSite: this.isProduction ? 'None' : 'Lax',
+    path: '/',
+  };
+
   @Post('register')
-  async create(@Body() createAuthDto: CreateUserDto) {
-    const tokens = await this.authService.createUser(createAuthDto);
-    return tokens;
+  async register(@Body() createUserDto: CreateUserDto, @Res() res: Response) {
+    const { accessToken, refreshToken } =
+      await this.authService.createUser(createUserDto);
+
+    res.cookie('accessToken', accessToken, this.cookieOptions);
+    res.cookie('refreshToken', refreshToken, this.cookieOptions);
+    return res.json({ message: 'Registration successful' });
   }
 
   @UseGuards(LocalAuthGuard)
   @Post('login')
-  async login(@Request() req: any) {
-    return await this.authService.login(req.user);
+  async login(@Request() req: any, @Res() res: Response) {
+    const tokens = await this.authService.login(req.user);
+
+    res.cookie('accessToken', tokens.accessToken, this.cookieOptions);
+    res.cookie('refreshToken', tokens.refreshToken, this.cookieOptions);
+
+    return res.json({ message: 'Login successful' });
   }
 
   @UseGuards(JwtAuthGuard)
