@@ -11,9 +11,16 @@ export class AdminController {
   @UseGuards(JwtAuthGuard, RoleGuard)
   @Role('admin')
   @Get('users/stats')
-  stats() {
-    const totalUsers = this.adminService.getToTalUserCount();
-    const rolesDistribution = this.adminService.getUserRolesDistribution();
+  async stats() {
+    console.log('retrieving stats');
+
+    const [totalUsers, rolesDistribution] = await Promise.all([
+      this.adminService.getToTalUserCount(),
+      this.adminService.getUserRolesDistribution(),
+    ]);
+
+    console.table({ totalUsers, rolesDistribution });
+
     return { totalUsers, rolesDistribution };
   }
 
