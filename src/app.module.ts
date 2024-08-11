@@ -8,6 +8,7 @@ import { PasswordModule } from './password/password.module';
 import { TokenModule } from './token/token.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { APP_GUARD } from '@nestjs/core';
     AuthModule,
     PasswordModule,
     TokenModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [
