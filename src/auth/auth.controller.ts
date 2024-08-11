@@ -7,6 +7,7 @@ import {
   Request,
   Get,
   UnauthorizedException,
+  Put,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
@@ -15,10 +16,15 @@ import { JwtAuthGuard } from './guards/jwt-auth/jwt-auth.guard';
 import { Tokens } from 'src/types';
 import { RefreshTokenGuard } from './guards/jwt-refresh-auth/jwt-refresh-auth.guard';
 import { Response } from 'express';
+import { UpdateUserDto } from 'src/users/dto/update-user.dto';
+import { UsersService } from 'src/users/users.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly usersService: UsersService,
+  ) {}
 
   private readonly isProduction = process.env.NODE_ENV === 'production';
   private readonly cookieOptions: any = {
@@ -53,6 +59,16 @@ export class AuthController {
   @Get('profile')
   getProfile(@Request() req: any) {
     return req.user;
+  }
+
+  @Put('profile')
+  @UseGuards(JwtAuthGuard)
+  async updateProfile(
+    @Request() req: any,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    const userId = req.user._id;
+    return this.usersService.update(userId, updateUserDto);
   }
 
   @UseGuards(JwtAuthGuard, RefreshTokenGuard)
