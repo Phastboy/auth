@@ -6,18 +6,16 @@ import {
   UseGuards,
   Request,
   Get,
-  UnauthorizedException,
   Put,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { LocalAuthGuard } from './guards/local-auth/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth/jwt-auth.guard';
-import { Tokens } from 'src/types';
 import { RefreshTokenGuard } from './guards/jwt-refresh-auth/jwt-refresh-auth.guard';
 import { Response } from 'express';
-import { UpdateUserDto } from 'src/users/dto/update-user.dto';
-import { UsersService } from 'src/users/users.service';
+import { UpdateUserDto } from '../users/dto/update-user.dto';
+import { UsersService } from '../users/users.service';
 
 @Controller('auth')
 export class AuthController {
@@ -47,10 +45,12 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('login')
   async login(@Request() req: any, @Res() res: Response) {
-    const tokens = await this.authService.login(req.user);
+    const { accessToken, refreshToken } = await this.authService.login(
+      req.user,
+    );
 
-    res.cookie('accessToken', tokens.accessToken, this.cookieOptions);
-    res.cookie('refreshToken', tokens.refreshToken, this.cookieOptions);
+    res.cookie('accessToken', accessToken, this.cookieOptions);
+    res.cookie('refreshToken', refreshToken, this.cookieOptions);
 
     return res.json({ message: 'Login successful' });
   }
@@ -71,14 +71,16 @@ export class AuthController {
     return this.usersService.update(userId, updateUserDto);
   }
 
-  @UseGuards(JwtAuthGuard, RefreshTokenGuard)
-  @Post('refresh')
-  async refresh(@Request() request: Request): Promise<Tokens> {
-    console.log({ request });
-    const refreshToken = request.headers['refresh-token'] as string;
-    if (!refreshToken || typeof refreshToken !== 'string') {
-      throw new UnauthorizedException('No or invalid refresh token provided');
-    }
-    return this.authService.refresh(refreshToken);
+  @UseGuards(RefreshTokenGuard)
+  @Get('refresh')
+  async refresh(@Request() request: any, @Res() res: Response) {
+    const oldRefreshToken = request.cookies['refreshToken'];
+    const { accessToken, refreshToken } =
+      await this.authService.refresh(oldRefreshToken);
+
+    res.cookie('accessToken', accessToken, this.cookieOptions);
+    res.cookie('refreshToken', refreshToken, this.cookieOptions);
+
+    return res.json({ message: 'tokens refreshed successfully' });
   }
 }

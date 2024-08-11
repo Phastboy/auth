@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { UsersModule } from 'src/users/users.module';
+import { UsersModule } from '../users/users.module';
 import { PassportModule } from '@nestjs/passport';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtModule } from '@nestjs/jwt';
@@ -9,6 +9,7 @@ import { variables } from '../../constants';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { PasswordModule } from '../password/password.module';
 import { TokenModule } from '../token/token.module';
+import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { TokenModule } from '../token/token.module';
       provide: JwtStrategy,
       useFactory: () => new JwtStrategy(variables.jwtSecret),
     },
+    JwtRefreshStrategy,
   ],
 })
 export class AuthModule {}

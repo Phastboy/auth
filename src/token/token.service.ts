@@ -29,19 +29,14 @@ export class TokenService {
     }
   }
 
-  async generateTokens(
-    user: User,
-    previousRefreshToken?: string,
-  ): Promise<Tokens> {
+  async generateTokens(user: User): Promise<Tokens> {
     try {
       const { password, salt, ...payload } = user;
       const accessToken = this.jwtService.sign(payload as Payload);
-      const refreshToken = previousRefreshToken
-        ? previousRefreshToken
-        : this.jwtService.sign(payload as Payload, {
-            secret: variables.jwtRefreshSecret,
-            expiresIn: variables.jwtRefreshTokenExpiresIn,
-          });
+      const refreshToken = this.jwtService.sign(payload as Payload, {
+        secret: variables.jwtRefreshSecret,
+        expiresIn: variables.jwtRefreshTokenExpiresIn,
+      });
       return { accessToken, refreshToken };
     } catch (error) {
       console.error('Error generating tokens:', error);

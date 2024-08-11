@@ -99,7 +99,7 @@ export class AuthService {
         throw new NotFoundException('User not found');
       }
 
-      const tokens = await this.tokenService.generateTokens(user, refreshToken);
+      const tokens = await this.tokenService.generateTokens(user);
       return tokens;
     } catch (error) {
       this.logger.error(
