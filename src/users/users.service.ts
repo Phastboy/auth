@@ -3,6 +3,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from '../schemas/user.schema';
 import { Model } from 'mongoose';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -38,7 +39,28 @@ export class UsersService {
     return this.userModel.findById(id).exec();
   }
 
+  async update(_id: string, updateUserDto: UpdateUserDto) {
+    return this.userModel.findOneAndUpdate({ _id }, updateUserDto).exec();
+  }
+
   async delete(username: string) {
     return this.userModel.findOneAndDelete({ username }).exec();
+  }
+
+  async getToTalUserCount() {
+    return this.userModel.countDocuments().exec();
+  }
+
+  async getUserRolesDistribution() {
+    return this.userModel
+      .aggregate([
+        {
+          $group: {
+            _id: '$role',
+            count: { $sum: 1 },
+          },
+        },
+      ])
+      .exec();
   }
 }
